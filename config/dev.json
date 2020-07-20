@@ -1,0 +1,5 @@
+{
+  "name": "Beluga Development",
+  "debug": "*,-express:*",
+  "port": 4000
+}
