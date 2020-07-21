@@ -1,3 +1,4 @@
 {
-  "name": "Beluga Production"
+  "name": "Beluga Production",
+  "db": "mongodb://localhost/beluga"
 }

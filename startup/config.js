@@ -3,7 +3,7 @@ const morgan = require("morgan");
 const env = process.env.NODE_ENV;
 process.env.PORT = config.get("port");
 if (env === "dev" || env === "debug") process.env.DEBUG = config.get("debug");
-const debug = require("debug")("beluga:startup/config");
+const debug = require("debug")("app:startup:config");
 
 let jwtPrivateKey = config.get("jwtPrivateKey");
 

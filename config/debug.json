@@ -1,5 +1,6 @@
 {
   "name": "Beluga Debug",
   "debug": "*,-express:*",
-  "port": 4000
+  "port": 4000,
+  "db": "mongodb://localhost/beluga-dev"
 }
