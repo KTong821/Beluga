@@ -24,7 +24,7 @@ const modelSchema = new mongoose.Schema({
       validator: function (value) {
         return value && value.length > 0;
       },
-      message: "Non-zero input shape dimensions must be provided.",
+      message: "Model input dimensions must be provided.",
     },
   },
 });
