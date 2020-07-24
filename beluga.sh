@@ -1,7 +1,6 @@
 #!/bin/bash
 clear
 export beluga_jwtPrivateKey=$(python jwt.py)
-echo $  beluga_jwtPrivateKey
 if [ -z "$1" ]
 then
     export NODE_ENV=dev

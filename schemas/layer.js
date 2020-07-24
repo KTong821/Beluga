@@ -16,27 +16,26 @@ const layerSchema = new mongoose.Schema({
   },
   inputShape: {
     type: [Number],
-    required: this.isInput,
-    // validate: {
-    //   validator: (value) => {
-    //     console.log(this.isInput);
-    //     return value && value.length > 0 && value.length <= 3;
-    //   },
-    //   message:
-    //     "Input layer shape must be provided and have fewer than or equal to 3 dimensions.",
-    // },
+    required: function () {
+      return this.isInput;
+    },
+    validate: {
+      validator: function (value) {
+        if (!this.isInput) return true;
+        return value && value.length > 0 && value.length <= 3;
+      },
+      message:
+        "{PATH} must be provided if 'isInput' is true and must have fewer than or equal to 3 dimensions.",
+    },
   },
   isCustom: {
     type: Boolean,
-    required: () => {
-      console.log(this);
-      console.log("under required: " + this.isInput);
-      return true;
-    },
+    required: true,
     validate: {
-      validator: (value) => {
-        console.log("isInput: " + this.isInput + " " + value);
-        return true;
+      validator: function (value) {
+        const a = this.isInput,
+          b = value;
+        return !(a && b);
       },
       message:
         "Custom input layers not supported. Only one of 'isInput' or 'isCustom' can be true.",
@@ -56,14 +55,18 @@ const layerSchema = new mongoose.Schema({
       strides: {
         type: [Number],
         validate: {
-          validator: tuple2D,
+          validator: (value) => {
+            return value.length === 0 || value.length === 2;
+          },
           message: "{PATH} must be of length 2.",
         },
       },
       pooling: {
         type: [Number],
         validate: {
-          validator: tuple2D,
+          validator: (value) => {
+            return value.length === 0 || value.length === 2;
+          },
           message: "{PATH} must be of length 2.",
         },
       },
@@ -71,21 +74,17 @@ const layerSchema = new mongoose.Schema({
   },
 });
 
-layerSchema.pre("validate", (next) => {
-  console.log(2);
-  next();
-});
-layerSchema.pre("validate", (next) => {
-  console.log(1);
-  next();
-});
-layerSchema.pre("save", () => {
-  console.log(3);
-});
-
-function tuple2D(value) {
-  return value.length === 2;
-}
+// layerSchema.pre("validate", (next) => {
+//   console.log(2);
+//   next();
+// });
+// layerSchema.pre("validate", (next) => {
+//   console.log(1);
+//   next();
+// });
+// layerSchema.pre("save", () => {
+//   console.log(3);
+// });
 
 const Layer = mongoose.model("Layer", layerSchema);
 
@@ -94,20 +93,24 @@ function validateLayer(layer) {
     name: Joi.string().alphanum().trim().min(5).max(25).required(),
     num: Joi.number().positive(),
     isInput: Joi.boolean().required(),
-    isCustom: Joi.boolean()
-      .when("isInput", {
-        is: Joi.boolean().truthy(),
-        then: Joi.valid(false),
-        otherwise: Joi.required(),
-      })
-      .error((err) => {
-        err.message = "something or other";
-        console.log("Error type: " + err);
-      }),
-    // inputShape: Joi.when("isInput", {
-    //   is: true,
-    //   then: Joi.any().required(),
-    // }),
+    isCustom: Joi.required().when("isInput", {
+      is: true,
+      then: Joi.boolean()
+        .valid(false)
+        .message(
+          "Custom input layers not supported. Only one of 'isInput' or 'isCustom' can be true."
+        ),
+      otherwise: Joi.boolean(),
+    }),
+    inputShape: Joi.when("isInput", {
+      is: true,
+      then: Joi.array()
+        .max(3)
+        .min(1)
+        .message(
+          "Because 'isInput' is true, inputShape must have 1 to 3 dimensions."
+        ),
+    }),
     options: Joi.object({
       activation: Joi.string().valid(
         "relu",
