@@ -28,8 +28,12 @@ describe("/api/models", () => {
       const res = await request(server).get("/api/models");
       expect(res.status).toBe(200);
       expect(res.body.length).toBe(2);
-      expect(res.body[0]).toHaveProperty("name", "numLayers", "inputShape");
-      expect(res.body[0]).toHaveProperty("name", "numLayers", "inputShape");
+      expect(res.body[0]).toHaveProperty("name", "test1");
+      expect(res.body[0]).toHaveProperty("numLayers", 2);
+      expect(res.body[0]).toHaveProperty("inputShape", [5, 5, 5]);
+      expect(res.body[1]).toHaveProperty("name", "test2");
+      expect(res.body[1]).toHaveProperty("numLayers", 3);
+      expect(res.body[1]).toHaveProperty("inputShape", [6, 6, 6]);
     });
   });
   describe("GET /:id", () => {

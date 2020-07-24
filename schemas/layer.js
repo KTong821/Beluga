@@ -9,7 +9,10 @@ const layerSchema = new mongoose.Schema({
     maxlength: 25,
     trim: true,
   },
-  num: Number,
+  num: {
+    type: Number,
+    min: 1,
+  },
   isInput: {
     type: Boolean,
     required: true,
