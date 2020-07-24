@@ -1,6 +1,5 @@
 import random
 import string
-import os
 
 
 def jwtPrivateKey(len):
@@ -9,5 +8,4 @@ def jwtPrivateKey(len):
     return result
 
 
-os.environ["beluga_jwtPrivateKey"] = jwtPrivateKey(15)
-print(os.environ["beluga_jwtPrivateKey"])
+print(jwtPrivateKey(15))

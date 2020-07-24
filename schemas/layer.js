@@ -17,17 +17,22 @@ const layerSchema = new mongoose.Schema({
   inputShape: {
     type: [Number],
     required: this.isInput,
-    validate: {
-      validator: (value) => {
-        return value && value.length > 0 && value.length <= 3;
-      },
-      message:
-        "Input layer shape must be provided and have fewer than or equal to 3 dimensions.",
-    },
+    // validate: {
+    //   validator: (value) => {
+    //     console.log(this.isInput);
+    //     return value && value.length > 0 && value.length <= 3;
+    //   },
+    //   message:
+    //     "Input layer shape must be provided and have fewer than or equal to 3 dimensions.",
+    // },
   },
   isCustom: {
     type: Boolean,
-    required: true,
+    required: () => {
+      console.log(this);
+      console.log("under required: " + this.isInput);
+      return true;
+    },
     validate: {
       validator: (value) => {
         console.log("isInput: " + this.isInput + " " + value);
@@ -66,6 +71,18 @@ const layerSchema = new mongoose.Schema({
   },
 });
 
+layerSchema.pre("validate", (next) => {
+  console.log(2);
+  next();
+});
+layerSchema.pre("validate", (next) => {
+  console.log(1);
+  next();
+});
+layerSchema.pre("save", () => {
+  console.log(3);
+});
+
 function tuple2D(value) {
   return value.length === 2;
 }
@@ -79,7 +96,7 @@ function validateLayer(layer) {
     isInput: Joi.boolean().required(),
     isCustom: Joi.boolean()
       .when("isInput", {
-        is: Joi.exist(),
+        is: Joi.boolean().truthy(),
         then: Joi.valid(false),
         otherwise: Joi.required(),
       })
@@ -87,7 +104,10 @@ function validateLayer(layer) {
         err.message = "something or other";
         console.log("Error type: " + err);
       }),
-    inputShape: Joi.array().min(1).max(3).required(),
+    // inputShape: Joi.when("isInput", {
+    //   is: true,
+    //   then: Joi.any().required(),
+    // }),
     options: Joi.object({
       activation: Joi.string().valid(
         "relu",
@@ -106,6 +126,6 @@ function validateLayer(layer) {
   return schema.validate(layer);
 }
 
-module.exports.layerSchema = modelSchema;
+module.exports.layerSchema = layerSchema;
 module.exports.Layer = Layer;
 module.exports.validate = validateLayer;
