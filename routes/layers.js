@@ -18,7 +18,21 @@ router.get("/:id", validateObjId, async (req, res) => {
   res.send(layer);
 });
 
-router.post("/", async (req, res) => {
+const multer = require("multer");
+var storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./uploads/");
+  },
+  filename: function (req, file, cb) {
+    // const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname);
+  },
+});
+
+var upload = multer({ storage: storage });
+
+router.post("/", upload.single("file"), async (req, res) => {
+  console.log(req);
   const { error } = validate(req.body);
   if (error) return res.status(400).send(error.details[0].message);
 

@@ -98,21 +98,24 @@ function validateLayer(layer) {
     isInput: Joi.boolean().required(),
     isCustom: Joi.required().when("isInput", {
       is: true,
-      then: Joi.boolean()
-        .valid(false)
-        .message(
-          "Custom input layers not supported. Only one of 'isInput' or 'isCustom' can be true."
-        ),
+      then: Joi.boolean().required().valid(false).messages({
+        "any.only":
+          "Custom input layers not supported. Only one of 'isInput' or 'isCustom' can be true.",
+      }),
       otherwise: Joi.boolean(),
     }),
     inputShape: Joi.when("isInput", {
       is: true,
       then: Joi.array()
+        .required()
         .max(3)
         .min(1)
         .message(
-          "Because 'isInput' is true, inputShape must have 1 to 3 dimensions."
+          "Because 'isInput' is true, 'inputShape' must have 1 to 3 dimensions."
         ),
+      otherwise: Joi.forbidden().messages({
+        "any.unknown": "Do not provide 'inputShape' if 'isInput' is false.",
+      }),
     }),
     options: Joi.object({
       activation: Joi.string().valid(

@@ -47,5 +47,22 @@ describe("/api/layers", () => {
       expect(res.body[1]).toHaveProperty("inputShape", [20]);
       expect(res.body[1]).toHaveProperty("options.activation", "sigmoid");
     });
+    describe("GET /:id", () => {
+      it("should return 404 if invalid ID is given", async () => {
+        const res = await request(server).get("/api/layers/1");
+        expect(res.status).toBe(404);
+      });
+      it("should return 404 if valid ID is given but layer does not belong to non-admin user", async () => {
+        expect(1).toBe(1);
+      });
+      it("should return 404 if any valid ID is given and user is admin", async () => {
+        expect(1).toBe(1);
+      });
+      it("should return 404 if no layer with given valid ID exists", async () => {
+        const _id = mongoose.Types.ObjectId();
+        const res = await request(server).get(`/api/layers/${_id}`);
+        expect(res.status).toBe(404);
+      });
+    });
   });
 });
