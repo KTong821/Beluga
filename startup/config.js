@@ -13,8 +13,11 @@ if (!jwtPrivateKey) {
 
 module.exports = function (app) {
   if (env !== "prod") {
-    if (env === "development") app.use(morgan("tiny"));
-    else app.use(morgan("short"));
-    debug("Morgan Enabled.");
+    // if (env === "development") app.use(morgan("tiny"));
+    // else app.use(morgan("short"));
+    if (env === "debug") {
+      app.use(morgan("short"));
+      debug("Morgan Enabled.");
+    }
   }
 };

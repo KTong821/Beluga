@@ -12,7 +12,7 @@ then
     export NODE_ENV=prod
 elif [ $1 = "test" ]
 then
-    export NODE_ENV=debug
+    export NODE_ENV=dev
     npm test
     exit 0
 fi

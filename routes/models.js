@@ -48,7 +48,7 @@ router.post("/", auth, async (req, res) => {
   try {
     const model_id = transaction.insert("Model", model);
     user.models.push(model_id);
-    transaction.update("User", user._id, user, { new: true });
+    transaction.update("User", user._id, user);
     const final = await transaction.run();
   } catch (err) {
     console.error(err);

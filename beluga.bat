@@ -17,7 +17,7 @@ set NODE_ENV=prod
 goto FINAL
 
 :TEST
-set NODE_ENV=debug
+set NODE_ENV=dev
 for /f %%i in ('python jwt.py') do set beluga_jwtPrivateKey=%%i
 npm test
 

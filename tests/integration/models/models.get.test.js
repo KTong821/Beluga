@@ -1,6 +1,6 @@
 const request = require("supertest");
-const { Model } = require("../../schemas/model");
-const { User } = require("../../schemas/user");
+const { Model } = require("../../../schemas/model");
+const { User } = require("../../../schemas/user");
 const mongoose = require("mongoose");
 let server, token, user;
 
@@ -15,7 +15,7 @@ const get_id = async (id) => {
 
 describe("/api/models", () => {
   beforeEach(async () => {
-    server = require("../../index");
+    server = require("../../../index");
     user = new User({
       name: "Tester",
       email: "testing@beluga.ca",

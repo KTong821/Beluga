@@ -23,7 +23,7 @@ module.exports = function () {
         winston.format.simple()
       ),
       level: "info",
-      //   colorize: true,
+      colorize: true,
       prettyPrint: true,
       handleRejections: true,
       handleExceptions: true,
@@ -31,7 +31,7 @@ module.exports = function () {
   );
   //   winston.add(
   //     new winston.transports.MongoDB({
-  //       db: "mongodb://localhost/vidly",
+  //       db: "mongodb://localhost/beluga",
   //       level: "error",
   //     })
   //   );
