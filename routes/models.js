@@ -62,25 +62,52 @@ router.put("/:id", auth, async (req, res) => {
   const { error } = validate(req.body);
   if (error) return res.status(400).send(error.details[0].message);
 
-  const model = await Model.findByIdAndUpdate(
-    req.params.id,
+  const user = await User.findById(req.user._id);
+  if (!user.models.some((id) => id.equals(req.params.id)))
+    return res
+      .status(400)
+      .send("The user does not own the model with the given ID. 1");
+
+  let model = await Model.findById(req.params.id);
+  if (!model)
+    return res.status(404).send("The model with the given ID does not exist.");
+  if (!model.owner.equals(user._id))
+    return res
+      .status(400)
+      .send("The user does not own the model with the given ID. 2");
+
+  model = await Model.findOneAndUpdate(
+    { _id: model._id },
     {
-      name: req.body.name,
-      numLayers: req.body.numLayers,
-      inputShape: req.body.inputShape,
+      $set: {
+        name: req.body.name,
+        numLayers: req.body.numLayers,
+        inputShape: req.body.inputShape,
+        layers: req.body.layers,
+      },
     },
     { new: true }
   );
-  if (!model)
-    return res.status(404).send("The model with the given ID does not exist.");
 
   res.send(model);
 });
 
 router.delete("/:id", auth, async (req, res) => {
-  const model = await Model.findByIdAndRemove(req.params.id);
+  const user = await User.findById(req.user._id);
+  if (!user.models.some((id) => id.equals(req.params.id)))
+    return res
+      .status(400)
+      .send("The user does not own the model with the given ID. 1");
+
+  let model = await Model.findById(req.params.id);
   if (!model)
     return res.status(404).send("The model with the given ID does not exist.");
+  if (!model.owner.equals(user._id))
+    return res
+      .status(400)
+      .send("The user does not own the model with the given ID. 2");
+
+  await Model.findByIdAndRemove(req.params.id);
   res.send(model);
 });
 

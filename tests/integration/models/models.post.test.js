@@ -5,7 +5,6 @@ const mongoose = require("mongoose");
 const _ = require("lodash");
 let server, token, user, model;
 
-console.log(process.env.NODE_ENV);
 const post = async (req) => {
   return await request(server)
     .post("/api/models")
@@ -51,14 +50,31 @@ describe("/api/models", () => {
       expect(res.status).toBe(401);
     });
     it("should return 400 if required attribute missing", async () => {
-      let res = await post((_.cloneDeep(model)["name"] = undefined));
-      expect(res.status).toBe(400);
-      res = await post((_.cloneDeep(model)["numLayers"] = undefined));
-      expect(res.status).toBe(400);
-      res = await post((_.cloneDeep(model)["inputShape"] = undefined));
-      expect(res.status).toBe(400);
-      res = await post((_.cloneDeep(model)["layers"] = undefined));
-      expect(res.status).toBe(400);
+      let res, temp;
+      for (let key in model) {
+        temp = _.cloneDeep(model);
+        temp[key] = undefined;
+        res = await post(temp);
+        expect(res.status).toBe(400);
+      }
+    });
+    it("should return 400 if attributes invalid", async () => {
+      let res, temp;
+      const invalids = [
+        { name: "a" },
+        { name: "a".repeat(50) },
+        { numLayers: 0 },
+        { numLayers: 100 },
+        { inputShape: [] },
+        { inputShape: [1, 2, 3, 4] },
+        { layers: [] },
+        { layers: [1] },
+      ];
+      for (let invalid of invalids) {
+        temp = { ..._.cloneDeep(model), invalid }; //invalid property overrides previously declared
+        res = await post(temp);
+        expect(res.status).toBe(400);
+      }
     });
   });
 });

@@ -119,14 +119,14 @@ describe("/api/models", () => {
         layers: [mongoose.Types.ObjectId()],
       });
       user.models.push(_id);
-      await User.findByIdAndUpdate(user._id, user);
+      await user.save();
       const res = await get_id(_id);
       expect(res.status).toBe(400);
     });
     it("should return 404 if ID is listed under user's 'model' path but does not exist", async () => {
       const _id = mongoose.Types.ObjectId();
       user.models.push(_id);
-      await User.findByIdAndUpdate(user._id, user);
+      await user.save();
       const res = await get_id(_id);
       expect(res.status).toBe(404);
     });
