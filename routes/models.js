@@ -58,6 +58,31 @@ router.post("/", auth, async (req, res) => {
   res.send(model);
 });
 
+router.post("/:id", auth, async (req, res) => {
+  if (!["docker", "h5", "script"].includes(req.body.type))
+    return res
+      .status(400)
+      .send("Only 'docker', 'h5', or 'script' return types allowed.");
+  const user = await User.findById(req.user._id);
+  if (!user.models.some((id) => id.equals(req.params.id)))
+    return res
+      .status(400)
+      .send("The user does not own the model with the given ID.");
+  const model = await Model.findById(req.params.id);
+  if (!model)
+    return res.status(404).send("The model with the given ID does not exist.");
+  if (!model.owner.equals(user._id))
+    return res
+      .status(400)
+      .send("The user does not own the model with the given ID.");
+  const flask_res = model.publish(req.body.type);
+  if (flask_res.status == 200) return res.send(model);
+  else {
+    console.log("500'ed");
+    return res.status(500).send("Internal Server Error.");
+  }
+});
+
 router.put("/:id", auth, async (req, res) => {
   const { error } = validate(req.body);
   if (error) return res.status(400).send(error.details[0].message);
@@ -66,7 +91,7 @@ router.put("/:id", auth, async (req, res) => {
   if (!user.models.some((id) => id.equals(req.params.id)))
     return res
       .status(400)
-      .send("The user does not own the model with the given ID. 1");
+      .send("The user does not own the model with the given ID.");
 
   let model = await Model.findById(req.params.id);
   if (!model)
@@ -74,7 +99,7 @@ router.put("/:id", auth, async (req, res) => {
   if (!model.owner.equals(user._id))
     return res
       .status(400)
-      .send("The user does not own the model with the given ID. 2");
+      .send("The user does not own the model with the given ID.");
 
   model = await Model.findOneAndUpdate(
     { _id: model._id },
@@ -97,7 +122,7 @@ router.delete("/:id", auth, async (req, res) => {
   if (!user.models.some((id) => id.equals(req.params.id)))
     return res
       .status(400)
-      .send("The user does not own the model with the given ID. 1");
+      .send("The user does not own the model with the given ID.");
 
   let model = await Model.findById(req.params.id);
   if (!model)
@@ -105,7 +130,7 @@ router.delete("/:id", auth, async (req, res) => {
   if (!model.owner.equals(user._id))
     return res
       .status(400)
-      .send("The user does not own the model with the given ID. 2");
+      .send("The user does not own the model with the given ID.");
 
   await Model.findByIdAndRemove(req.params.id);
   res.send(model);

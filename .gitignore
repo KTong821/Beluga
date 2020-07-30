@@ -106,5 +106,13 @@ dist
 #Syncthing ignore
 .stignore
 .stfolder/
-axiostest.js
-uploads/*
+
+#Python
+__pycache__/
+
+#Redis Dump
+*.rdb
+
+#Testing Code
+temp.sh
+test.js

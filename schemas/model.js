@@ -1,9 +1,14 @@
 const Joi = require("joi");
 const mongoose = require("mongoose");
-// console.log(mongoose.Types.ObjectId());
+const axios = require("axios");
+const axr = require("axios-retry");
 
-// const { User } = require("./user");
-// console.log(new User().generateAuthToken());
+axr(axios, {
+  retries: 3,
+  retryDelay: axr.exponentialDelay,
+  shouldResetTimeout: true,
+});
+
 const modelSchema = new mongoose.Schema(
   {
     name: {
@@ -52,6 +57,19 @@ const modelSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+modelSchema.methods.publish = async function (type) {
+  const res = await axios.get(
+    "http://127.0.0.1:5000/",
+    {
+      type: type,
+      _id: this._id,
+    },
+    { timeout: 1 }
+  );
+  return res;
+};
+
 const Model = mongoose.model("Model", modelSchema);
 
 function validateModel(model) {

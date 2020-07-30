@@ -18,10 +18,10 @@ goto FINAL
 
 :TEST
 set NODE_ENV=dev
-for /f %%i in ('python jwt.py') do set beluga_jwtPrivateKey=%%i
+for /f %%i in ('python ./startup/jwt.py') do set beluga_jwtPrivateKey=%%i
 npm test
 
 :FINAL
-for /f %%i in ('python jwt.py') do set beluga_jwtPrivateKey=%%i
+for /f %%i in ('python ./startup/jwt.py') do set beluga_jwtPrivateKey=%%i
 nodemon index.js
 cls

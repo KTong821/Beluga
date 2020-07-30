@@ -4,7 +4,7 @@ require("express-async-errors");
 module.exports = function () {
   winston.add(
     new winston.transports.File({
-      filename: "beluga-errors.log",
+      filename: "./logs/beluga-errors.log",
       level: "error",
       handleRejections: true,
       handleExceptions: true,
@@ -29,10 +29,4 @@ module.exports = function () {
       handleExceptions: true,
     })
   );
-  //   winston.add(
-  //     new winston.transports.MongoDB({
-  //       db: "mongodb://localhost/beluga",
-  //       level: "error",
-  //     })
-  //   );
 };
