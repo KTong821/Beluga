@@ -1,6 +1,19 @@
 const Joi = require("joi");
 const mongoose = require("mongoose");
-
+const defaults = [
+  "dense",
+  "dropout",
+  "flatten",
+  "maxp2d",
+  "gmp2d",
+  "conv2d",
+  "l1reg",
+  "l2reg",
+  "vgg16",
+  "vgg19",
+  "resnet50",
+  "effnetb0",
+];
 const layerSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -8,10 +21,26 @@ const layerSchema = new mongoose.Schema({
     minlength: 5,
     maxlength: 25,
     trim: true,
+    validate: {
+      validator: function (value) {
+        if (this.isCustom) return !defaults.includes(value);
+        return defaults.includes(value);
+      },
+    },
   },
   num: {
     type: Number,
     min: 1,
+  },
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    validate: {
+      validator: function (value) {
+        return mongoose.Types.ObjectId.isValid(value);
+      },
+      message: "Invalid objectId provided for {PATH}",
+    },
   },
   isInput: {
     type: Boolean,
@@ -42,6 +71,19 @@ const layerSchema = new mongoose.Schema({
       },
       message:
         "Custom input layers not supported. Only one of 'isInput' or 'isCustom' can be true.",
+    },
+  },
+  lambda: {
+    //file path
+    type: String,
+    trim: true,
+    validate: {
+      validator: function (value) {
+        if (this.isCustom && !value) return false;
+        if (!this.isCustom && value) return false;
+        return true;
+      },
+      message: "{PATH} must be provided only iff 'isCustom' is true",
     },
   },
   options: {
@@ -77,23 +119,20 @@ const layerSchema = new mongoose.Schema({
   },
 });
 
-// layerSchema.pre("validate", (next) => {
-//   console.log(2);
-//   next();
-// });
-// layerSchema.pre("validate", (next) => {
-//   console.log(1);
-//   next();
-// });
-// layerSchema.pre("save", () => {
-//   console.log(3);
-// });
-
 const Layer = mongoose.model("Layer", layerSchema);
 
 function validateLayer(layer) {
   const schema = Joi.object({
-    name: Joi.string().alphanum().trim().min(5).max(25).required(),
+    name: Joi.required().when("isCustom", {
+      is: true,
+      then: Joi.string()
+        .alphanum()
+        .trim()
+        .min(5)
+        .max(25)
+        .invalid(...defaults),
+      otherwise: Joi.string().valid(...defaults),
+    }),
     num: Joi.number().positive(),
     isInput: Joi.boolean().required(),
     isCustom: Joi.required().when("isInput", {
@@ -138,3 +177,4 @@ function validateLayer(layer) {
 module.exports.layerSchema = layerSchema;
 module.exports.Layer = Layer;
 module.exports.validate = validateLayer;
+module.exports.defaults = defaults;

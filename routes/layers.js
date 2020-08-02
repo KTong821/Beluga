@@ -1,77 +1,127 @@
 const express = require("express");
 const router = express.Router();
-const { Layer, validate } = require("../schemas/layer");
-// const auth = require("../middleware/auth");
-// const admin = require("../middleware/admin");
+const { Layer, validate, defaults } = require("../schemas/layer");
+const { User } = require("../schemas/user");
+const Transaction = require("mongoose-transactions");
+const auth = require("../middleware/auth");
+const winston = require("winston");
 const validateObjId = require("../middleware/validateObjectId");
+const mongoose = require("mongoose");
+const multer = require("multer");
+const fs = require("fs");
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const dir = `./uploads/${req.user._id}`;
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+    cb(null, dir);
+    req.file_path = `${dir}/${file.originalname}`;
+  },
+  filename: function (req, file, cb) {
+    console.log(file);
+    cb(null, file.originalname);
+  },
+});
+const filter = function (req, file, cb) {
+  if (req.body.isCustom === "true") {
+    if (file.originalname.slice(-3) !== ".py") {
+      req.file_invalid = true;
+      cb(null, false);
+    } else cb(null, true);
+  } else {
+    req.file_unexpected = true;
+    cb(null, false);
+  }
+};
+const upload = multer({ storage: storage, fileFilter: filter });
 
 router.get("/", async (req, res) => {
-  const layers = await Layer.find().sort("name");
-  res.send(layers);
+  res.send(defaults);
 });
 
-router.get("/:id", validateObjId, async (req, res) => {
+function validateParam(req, res, next) {
+  if (
+    !mongoose.Types.ObjectId.isValid(req.params.id) &&
+    req.params.id !== "custom"
+  )
+    return res.status(404).send("Invalid ID");
+  next();
+}
+
+router.get("/:id", auth, validateParam, async (req, res) => {
+  if (req.params.id === "custom") {
+    const user = await User.findById(req.user._id);
+    let layers = await Layer.find({
+      _id: { $in: user.layers },
+      isCustom: true,
+    }).sort("name");
+
+    return res.send(layers);
+  }
+  const user = await User.findById(req.user._id);
+  if (!user.layers.some((id) => id.equals(req.params.id)))
+    return res
+      .status(400)
+      .send("The user does not own the layer with the given ID.");
   const layer = await Layer.findById(req.params.id);
   if (!layer)
     return res.status(404).send("The layer with the given ID does not exist.");
-
+  if (!layer.owner.equals(user._id))
+    return res
+      .status(400)
+      .send("The user does not own the layer with the given ID.");
   res.send(layer);
 });
 
-const multer = require("multer");
-var storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "./uploads/");
-  },
-  filename: function (req, file, cb) {
-    // const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, file.fieldname);
-  },
-});
+router.post("/", auth, upload.single("module"), async (req, res) => {
+  if (req.file_invalid)
+    res.status(400).send("Invalid file type for custom layer.");
+  if (req.file_unexpected)
+    res.set("warning", "'isCustom' false; files rejected.");
 
-var upload = multer({ storage: storage });
-
-router.post("/", upload.single("file"), async (req, res) => {
-  console.log(req);
   const { error } = validate(req.body);
   if (error) return res.status(400).send(error.details[0].message);
 
-  const layer = new Layer({
+  const user = await User.findById(req.user._id);
+  const layer = {
     name: req.body.name,
     num: req.body.num,
+    owner: req.user._id,
     isInput: req.body.isInput,
     inputShape: req.body.inputShape,
     isCustom: req.body.isCustom,
+    lambda: req.file_path,
     options: req.body.options,
-  });
-  await layer.save();
+  };
+  const transaction = new Transaction();
+  try {
+    const layer_id = transaction.insert("Layer", layer);
+    user.layers.push(layer_id);
+    transaction.update("User", user._id, user);
+    const final = await transaction.run();
+  } catch (err) {
+    winston.error(err.message, err);
+    const rollbackObj = await transaction.rollback().catch(console.error);
+    transaction.clean();
+    return res.status(500).send("Internal Server Error");
+  }
   res.send(layer);
 });
 
-// router.put("/:id", async (req, res) => {
-//   const { error } = validate(req.body);
-//   if (error) return res.status(400).send(error.details[0].message);
-
-//   const layer = await Layer.findByIdAndUpdate(
-//     req.params.id,
-//     {
-//       name: req.body.name,
-//       numLayers: req.body.numLayers,
-//       inputShape: req.body.inputShape,
-//     },
-//     { new: true }
-//   );
-//   if (!layer)
-//     return res.status(404).send("The layer with the given ID does not exist.");
-
-//   res.send(layer);
-// });
-
-// router.delete("/:id", async (req, res) => {
-//   const layer = await Layer.findByIdAndRemove(req.params.id);
-//   if (!layer)
-//     return res.status(404).send("The layer with the given ID does not exist.");
-//   res.send(layer);
-// });
+router.delete("/:id", auth, validateObjId, async (req, res) => {
+  const user = await User.findById(req.user._id);
+  if (!user.layers.some((id) => id.equals(req.params.id)))
+    return res
+      .status(400)
+      .send("The user does not own the layer with the given ID.");
+  const layer = await Layer.findById(req.params.id);
+  if (!layer)
+    return res.status(404).send("The layer with the given ID does not exist.");
+  if (!layer.owner.equals(user._id))
+    return res
+      .status(400)
+      .send("The user does not own the layer with the given ID.");
+  await Layer.remove({ _id: req.params.id });
+});
 
 module.exports = router;

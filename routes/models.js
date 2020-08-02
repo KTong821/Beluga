@@ -3,7 +3,7 @@ const router = express.Router();
 const { Model, validate } = require("../schemas/model");
 const { User } = require("../schemas/user");
 const auth = require("../middleware/auth");
-const admin = require("../middleware/admin");
+const winston = require("winston");
 const Transaction = require("mongoose-transactions");
 const validateObjId = require("../middleware/validateObjectId");
 
@@ -51,14 +51,17 @@ router.post("/", auth, async (req, res) => {
     transaction.update("User", user._id, user);
     const final = await transaction.run();
   } catch (err) {
-    console.error(err);
+    winston.error(err.message, err);
     const rollbackObj = await transaction.rollback().catch(console.error);
     transaction.clean();
+    return res.status(500).send("Internal Server Error");
   }
   res.send(model);
 });
 
 router.post("/:id", auth, async (req, res) => {
+  if (!req.body.type && typeof req.body.type !== "string")
+    return res.status(400).send("Model return type required.");
   if (!["docker", "h5", "script"].includes(req.body.type))
     return res
       .status(400)
@@ -75,12 +78,10 @@ router.post("/:id", auth, async (req, res) => {
     return res
       .status(400)
       .send("The user does not own the model with the given ID.");
-  const flask_res = model.publish(req.body.type);
+
+  const flask_res = await model.publish(req.body.type);
   if (flask_res.status == 200) return res.send(model);
-  else {
-    console.log("500'ed");
-    return res.status(500).send("Internal Server Error.");
-  }
+  else return res.status(400).send("__ERROR MESSAGE__"); //Add logic after integrating python
 });
 
 router.put("/:id", auth, async (req, res) => {
@@ -132,7 +133,7 @@ router.delete("/:id", auth, async (req, res) => {
       .status(400)
       .send("The user does not own the model with the given ID.");
 
-  await Model.findByIdAndRemove(req.params.id);
+  await Model.remove({ _id: req.params.id });
   res.send(model);
 });
 

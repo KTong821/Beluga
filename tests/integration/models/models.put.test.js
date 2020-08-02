@@ -52,7 +52,7 @@ describe("/api/models", () => {
       const res = await put();
       expect(res.status).toBe(401);
     });
-    it("should return 400 if ID is not listed under user's 'model' path", async () => {
+    it("should return 400 if ID is not listed under user's 'models' path", async () => {
       const res = await put(
         _.omit(model, ["owner", "_id"]),
         mongoose.Types.ObjectId()
@@ -67,7 +67,7 @@ describe("/api/models", () => {
       const res = await put(_.omit(model, ["owner", "_id"]), model._id);
       expect(res.status).toBe(400);
     });
-    it("should return 404 if ID is listed under user's 'model' path but does not exist", async () => {
+    it("should return 404 if ID is listed under user's 'models' path but does not exist", async () => {
       const _id = mongoose.Types.ObjectId();
       user.models.push(_id);
       await User.findByIdAndUpdate(user._id, user);

@@ -105,7 +105,7 @@ describe("/api/models", () => {
       const res = await get_id(123);
       expect(res.status).toBe(404);
     });
-    it("should return 400 if ID is not listed under user's 'model' path", async () => {
+    it("should return 400 if ID is not listed under user's 'models' path", async () => {
       const _id = mongoose.Types.ObjectId();
       const res = await get_id(_id);
       expect(res.status).toBe(400);
@@ -123,7 +123,7 @@ describe("/api/models", () => {
       const res = await get_id(_id);
       expect(res.status).toBe(400);
     });
-    it("should return 404 if ID is listed under user's 'model' path but does not exist", async () => {
+    it("should return 404 if ID is listed under user's 'models' path but does not exist", async () => {
       const _id = mongoose.Types.ObjectId();
       user.models.push(_id);
       await user.save();

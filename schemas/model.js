@@ -4,7 +4,7 @@ const axios = require("axios");
 const axr = require("axios-retry");
 
 axr(axios, {
-  retries: 3,
+  retries: 2,
   retryDelay: axr.exponentialDelay,
   shouldResetTimeout: true,
 });
@@ -59,6 +59,7 @@ const modelSchema = new mongoose.Schema(
 );
 
 modelSchema.methods.publish = async function (type) {
+  // try {
   const res = await axios.get(
     "http://127.0.0.1:5000/",
     {

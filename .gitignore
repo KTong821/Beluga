@@ -116,3 +116,6 @@ __pycache__/
 #Testing Code
 temp.sh
 test.js
+
+#User Uploads
+uploads/
