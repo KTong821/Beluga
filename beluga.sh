@@ -32,9 +32,9 @@ celery -A index.celery worker -l info > ../logs/celery.log 2>&1 &
 P3=$!
 
 printf "\nOpening Flower Console..."
-celery flower -A proj --address=127.0.0.1 --port=5555
+celery flower -A index.celery --address=127.0.0.1 --port=5555 > ../logs/flower.log 2>&1 &
 xdg-open http:localhost:5555 &
-read -p "Press any key to resume ..."
+
 printf "\nDeactivating Conda Environment..."
 conda deactivate
 cd ..
@@ -54,6 +54,7 @@ then
     export NODE_ENV=dev    
     printf "\nRunning Tests..."
     npm test
+    printf "DONE TESTS"
     exit 0
 fi
 

@@ -8,7 +8,7 @@ const winston = require("winston");
 const validateObjId = require("../middleware/validateObjectId");
 const mongoose = require("mongoose");
 const multer = require("multer");
-const fs = require("fs");
+const fs = require("fs-extra");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -18,12 +18,16 @@ const storage = multer.diskStorage({
     req.file_path = `${dir}/${file.originalname}`;
   },
   filename: function (req, file, cb) {
-    console.log(file);
     cb(null, file.originalname);
   },
 });
 const filter = function (req, file, cb) {
-  if (req.body.isCustom === "true") {
+  if (req.body.layer) {
+    //multi-part form data sends only strings, so JSON stringify used to preserve types
+    req.body = JSON.parse(req.body.layer);
+  }
+
+  if (req.body.isCustom) {
     if (file.originalname.slice(-3) !== ".py") {
       req.file_invalid = true;
       cb(null, false);
@@ -75,12 +79,19 @@ router.get("/:id", auth, validateParam, async (req, res) => {
 
 router.post("/", auth, upload.single("module"), async (req, res) => {
   if (req.file_invalid)
-    res.status(400).send("Invalid file type for custom layer.");
+    return res.status(400).send("Invalid file type for custom layer.");
   if (req.file_unexpected)
-    res.set("warning", "'isCustom' false; files rejected.");
+    res.append("warning", "'isCustom' false; files rejected.");
 
   const { error } = validate(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
+  if (error) {
+    if (req.file)
+      await fs.unlink(`./uploads/${req.user._id}/${req.file.originalname}`);
+    return res.status(400).send(error.details[0].message);
+  }
+
+  if (req.body.isCustom && !req.file)
+    return res.status(400).send("Missing custom layer .py file.");
 
   const user = await User.findById(req.user._id);
   const layer = {
