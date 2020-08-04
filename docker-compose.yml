@@ -1,0 +1,27 @@
+version: "3"
+services:
+  redis-server:
+    image: redis:6.0-alpine
+  mongodb:
+    image: mongo:4.2-bionic
+    ports:
+      - 27017-27019:27017-27019
+  flask:
+    build:
+      context: ./python_keras/
+      dockerfile: ./flask/Dockerfile #continuation of above path
+    env_file: ./python_keras/flask/flask.env
+    volumes:
+      - ./python_keras/flask:/app
+    ports:
+      - 5000:5000
+    depends_on:
+      - redis-server
+  celery:
+    build: ./python_keras/backend
+    volumes:
+      - ./python_keras/backend:/app
+    ports:
+      - 5555:5555
+    depends_on:
+      - redis-server
