@@ -12,16 +12,32 @@ services:
       dockerfile: ./flask/Dockerfile #continuation of above path
     env_file: ./python_keras/flask/flask.env
     volumes:
-      - ./python_keras/flask:/app
+      - ./python_keras:/app
     ports:
       - 5000:5000
     depends_on:
       - redis-server
+      - mongodb
+      - celery
   celery:
     build: ./python_keras/backend
+    env_file: ./python_keras/backend/backend.env
     volumes:
       - ./python_keras/backend:/app
     ports:
       - 5555:5555
     depends_on:
       - redis-server
+      - mongodb
+  node:
+    build: ./node
+    env_file: ./node/node.env
+    environment:
+      - NPM_TEST=true
+    volumes:
+      - ./node/:/app
+    ports:
+      - 4000:4000
+    depends_on:
+      - mongodb
+      - flask

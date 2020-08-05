@@ -3,6 +3,7 @@ FROM python:3.7.8-slim-buster
 WORKDIR /app
 
 COPY . .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --disable-pip-version-check --no-cache-dir -r requirements.txt
+RUN chmod 111 ./start.sh
 
-CMD ["celery","flower" ,"-A", "tasks.celery", "--address=0.0.0.0", "--port=5555"]
+CMD ["bash", "start.sh"]

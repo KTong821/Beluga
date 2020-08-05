@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest --watchAll --verbose --runInBand --logHeapUsage --no-cache"
+    "test": "jest --verbose --runInBand --logHeapUsage --no-cache"
   },
   "jest": {
     "testEnvironment": "node"

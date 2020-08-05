@@ -61,7 +61,7 @@ const modelSchema = new mongoose.Schema(
 modelSchema.methods.publish = async function (type) {
   // try {
   const res = await axios.get(
-    "http://127.0.0.1:5000/",
+    "flask:5000/",
     {
       type: type,
       _id: this._id,
