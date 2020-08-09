@@ -8,6 +8,7 @@ const winston = require("winston");
 const validateObjId = require("../middleware/validateObjectId");
 const mongoose = require("mongoose");
 const multer = require("multer");
+const _ = require("lodash");
 const fs = require("fs-extra");
 
 const storage = multer.diskStorage({
@@ -116,7 +117,7 @@ router.post("/", auth, upload.single("module"), async (req, res) => {
     transaction.clean();
     return res.status(500).send("Internal Server Error");
   }
-  res.send(layer);
+  res.send(_.omit(layer, ["lambda"]));
 });
 
 router.delete("/:id", auth, validateObjId, async (req, res) => {

@@ -81,6 +81,7 @@ router.post("/:id", auth, async (req, res) => {
 
   const flask_res = await model.publish(req.body.type);
   if (flask_res.status == 200) return res.send(model);
+  else if (flask_res.status == 500) return res.status(500).end();
   else return res.status(400).send("__ERROR MESSAGE__"); //Add logic after integrating python
 });
 

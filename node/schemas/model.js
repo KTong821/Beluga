@@ -59,14 +59,14 @@ const modelSchema = new mongoose.Schema(
 );
 
 modelSchema.methods.publish = async function (type) {
-  // try {
-  const res = await axios.get(
-    "flask:5000/",
+  console.log("publishing");
+  const res = await axios.post(
+    "http://127.0.0.1:5000/",
     {
       type: type,
       _id: this._id,
     },
-    { timeout: 1 }
+    { timeout: 1000 }
   );
   return res;
 };
