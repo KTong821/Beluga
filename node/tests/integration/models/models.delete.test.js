@@ -13,8 +13,10 @@ const del = async (id) => {
 };
 
 describe("/api/models", () => {
-  beforeEach(async () => {
+  beforeAll(() => {
     server = require("../../../index");
+  });
+  beforeEach(async () => {
     user = new User({
       name: "Tester",
       email: "testing@beluga.ca",
@@ -34,7 +36,6 @@ describe("/api/models", () => {
   afterEach(async () => {
     await User.deleteMany({});
     await Model.deleteMany({});
-    server.close();
   });
   describe("DELETE /", () => {
     it("should delete the model if request is valid", async () => {

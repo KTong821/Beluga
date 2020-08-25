@@ -14,8 +14,10 @@ const get_id = async (id) => {
 };
 
 describe("/api/models", () => {
-  beforeEach(async () => {
+  beforeAll(() => {
     server = require("../../../index");
+  });
+  beforeEach(async () => {
     user = new User({
       name: "Tester",
       email: "testing@beluga.ca",
@@ -27,7 +29,6 @@ describe("/api/models", () => {
   afterEach(async () => {
     await User.deleteMany({});
     await Model.deleteMany({});
-    server.close();
   });
   describe("GET /", () => {
     it("should return 401 if client is not logged in", async () => {

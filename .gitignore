@@ -120,5 +120,8 @@ test.js
 #User Uploads
 uploads/
 
-#Node Testing Folder
-jesting/
+#vscode
+.vscode/
+
+#package-lock.json
+package-lock.json

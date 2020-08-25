@@ -4,13 +4,13 @@ services:
     image: redis:6.0-alpine
   mongodb:
     image: mongo:4.2-bionic
+    ports:
+      - 27017:27017
   flask:
     build:
       context: ./python_keras/
       dockerfile: ./flask/Dockerfile #continuation of above path
     env_file: ./python_keras/flask/flask.env
-    volumes:
-      - ./python_keras:/app
     ports:
       - 5000:5000
     depends_on:
@@ -20,8 +20,6 @@ services:
   celery:
     build: ./python_keras/backend
     env_file: ./python_keras/backend/backend.env
-    volumes:
-      - ./python_keras/backend:/app
     ports:
       - 5555:5555
     depends_on:
@@ -32,8 +30,6 @@ services:
     env_file: ./node/node.env
     environment:
       - NPM_TEST=true
-    volumes:
-      - ./node/:/app
     ports:
       - 4000:4000
     depends_on:

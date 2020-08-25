@@ -22,8 +22,10 @@ const post_file = async (layer, path) => {
 };
 
 describe("/api/layers", () => {
-  beforeEach(async () => {
+  beforeAll(() => {
     server = require("../../../index");
+  });
+  beforeEach(async () => {
     user = new User({
       name: "Tester",
       email: "testing@beluga.ca",
@@ -39,7 +41,6 @@ describe("/api/layers", () => {
     };
   });
   afterEach(async () => {
-    server.close();
     await User.deleteMany({});
     await Layer.deleteMany({});
     await fs.emptyDir("./uploads");

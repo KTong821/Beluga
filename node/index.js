@@ -4,5 +4,7 @@ require("./startup/startup")(app);
 const debug = require("debug")("app:index");
 
 const port = process.env.PORT;
-const server = app.listen(port, () => debug(`Listening on port ${port}.`));
-module.exports = server;
+
+if (process.env.NODE_ENV !== "debug")
+  app.listen(port, () => debug(`Listening on port ${port}.`));
+module.exports = app;

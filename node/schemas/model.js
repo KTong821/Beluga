@@ -59,9 +59,11 @@ const modelSchema = new mongoose.Schema(
 );
 
 modelSchema.methods.publish = async function (type) {
-  console.log("publishing");
+  let addr;
+  if (process.env.NODE_ENV === "debug") addr = "http://localhost:5000";
+  else addr = "http://flask:5000/";
   const res = await axios.post(
-    "http://127.0.0.1:5000/",
+    addr,
     {
       type: type,
       _id: this._id,

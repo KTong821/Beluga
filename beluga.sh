@@ -6,13 +6,13 @@ elif [ $1 = "node" ]; then
     cd node
     export beluga_jwtPrivateKey=$(python ./startup/jwt.py)
     if [ -z "$2" ]; then
-        export NODE_ENV=dev
-    elif [ $2 = "-d" ]; then
         export NODE_ENV=debug
+    elif [ $2 = "-d" ]; then
+        export NODE_ENV=dev
     elif [ $2 = "-p" ]; then
         export NODE_ENV=prod
     elif [ $2 = "test" ]; then
-        export NODE_ENV=dev
+        export NODE_ENV=debug
         printf "\nRunning Tests..."
         npm test
         printf "\nTests Complete."

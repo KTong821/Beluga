@@ -1,8 +1,10 @@
 const request = require("supertest");
 const { Model } = require("../../../schemas/model");
 const { User } = require("../../../schemas/user");
+const { Layer } = require("../../../schemas/layer");
 const mongoose = require("mongoose");
 const _ = require("lodash");
+const axios = require("axios");
 let server, token, user, model;
 
 const post = async (req) => {
@@ -12,9 +14,18 @@ const post = async (req) => {
     .send(req);
 };
 
+const post_id = async (req, id) => {
+  return await request(server)
+    .post(`/api/models/${id}`)
+    .set("x-auth-token", token)
+    .send(req);
+};
+
 describe("/api/models", () => {
-  beforeEach(async () => {
+  beforeAll(() => {
     server = require("../../../index");
+  });
+  beforeEach(async () => {
     user = new User({
       name: "Tester",
       email: "testing@beluga.ca",
@@ -32,7 +43,6 @@ describe("/api/models", () => {
   afterEach(async () => {
     await User.deleteMany({});
     await Model.deleteMany({});
-    server.close();
   });
   describe("POST /", () => {
     it("should save the model if request is valid", async () => {
@@ -75,6 +85,81 @@ describe("/api/models", () => {
         res = await post(temp);
         expect(res.status).toBe(400);
       }
+    });
+    describe("POST /:id", () => {
+      // let layer
+      // beforeEach(async () => {
+
+      // })
+      it("should return 200 response if flask server active", async () => {
+        let res, addr;
+        if (process.env.NODE_ENV === "debug")
+          addr = "http://localhost:5000/healthcheck";
+        else addr = "http://flask:5000/healthcheck";
+        res = await axios.get(addr, { timeout: 1000 });
+        expect(res.status).toBe(200);
+      });
+      it("should return 200 response if request valid", async () => {
+        const layer = await Layer.create({
+          name: "dense",
+          owner: mongoose.Types.ObjectId(),
+          num: 3,
+          isInput: false,
+          isCustom: false,
+        });
+        const { _id } = await Model.create({
+          ...model,
+          layers: [layer],
+          owner: user._id,
+        });
+        user.models.push(_id);
+        await user.save();
+        let res;
+
+        for (let type of ["docker", "h5", "script"]) {
+          res = await post_id({ type }, _id);
+          expect(res.status).toBe(200);
+          expect(res.text).toBe(_id.toString());
+        }
+
+        // setTimeout(() => {
+        //   console.log("Timeout Over");
+        //   done(); Pass done as parameter
+        // }, 4000);
+      });
+      it("should return 400 response if type missing", async () => {
+        const res = await post_id(null, mongoose.Types.ObjectId());
+        expect(res.status).toBe(400);
+      });
+      it("should return 400 response if type invalid", async () => {
+        const res = await post_id({ type: "abc" }, mongoose.Types.ObjectId());
+        expect(res.status).toBe(400);
+      });
+      it("should return 400 if ID is not listed under user's 'models' path", async () => {
+        const { _id } = await Model.create({
+          ...model,
+          owner: mongoose.Types.ObjectId(),
+        });
+        const res = await post_id({ type: "h5" }, _id);
+        expect(res.status).toBe(400);
+      });
+      it("should return 400 if model does not list user as owner", async () => {
+        const { _id } = await Model.create({
+          ...model,
+          owner: mongoose.Types.ObjectId(),
+        });
+        user.models.push(_id);
+        await user.save();
+        const res = await post_id({ type: "h5" }, _id);
+        expect(res.status).toBe(400);
+      });
+      it("should return 404 if the model does not exist", async () => {
+        const _id = mongoose.Types.ObjectId();
+        user.models.push(_id);
+        await user.save();
+        const res = await post_id({ type: "h5" }, _id);
+        expect(res.status).toBe(404);
+      });
     });
   });
 });

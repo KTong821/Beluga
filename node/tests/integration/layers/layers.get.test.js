@@ -11,8 +11,10 @@ const get = async (endpoint) => {
 };
 
 describe("/api/layers", () => {
-  beforeEach(async () => {
+  beforeAll(() => {
     server = require("../../../index");
+  });
+  beforeEach(async () => {
     user = new User({
       name: "Tester",
       email: "testing@beluga.ca",
@@ -24,7 +26,6 @@ describe("/api/layers", () => {
   afterEach(async () => {
     await User.deleteMany({});
     await Layer.deleteMany({});
-    server.close();
   });
   describe("GET /defaults", () => {
     it("should return an array of default layer names", async () => {
