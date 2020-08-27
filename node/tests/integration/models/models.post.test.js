@@ -87,15 +87,11 @@ describe("/api/models", () => {
       }
     });
     describe("POST /:id", () => {
-      // let layer
-      // beforeEach(async () => {
-
-      // })
       it("should return 200 response if flask server active", async () => {
         let res, addr;
         if (process.env.NODE_ENV === "debug")
           addr = "http://localhost:5000/healthcheck";
-        else addr = "http://flask:5000/healthcheck";
+        else addr = "http://flask:80/healthcheck";
         res = await axios.get(addr, { timeout: 1000 });
         expect(res.status).toBe(200);
       });

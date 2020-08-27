@@ -1,9 +1,14 @@
-FROM python:3.7.8-slim-buster
+FROM tiangolo/uwsgi-nginx-flask:python3.8-alpine
+RUN apk --update add bash nano
+ENV STATIC_URL /static
+ENV STATIC_PATH /var/www/app/static
 
-WORKDIR /app
+WORKDIR /var/www/
 
-COPY . .
-RUN pip install --disable-pip-version-check --no-cache-dir -r ./flask/requirements.txt
+COPY ./flask/requirements.txt ./flask/uwsgi.ini ./flask/main.py ./
+RUN pip install --disable-pip-version-check --no-cache-dir -r requirements.txt
 
-WORKDIR /app/flask
-CMD ["python", "index.py"]
+COPY ./flask/flask_app ./flask_app
+COPY ./celery/tasks ./tasks
+
+RUN ls -al

@@ -12,14 +12,14 @@ services:
       dockerfile: ./flask/Dockerfile #continuation of above path
     env_file: ./python_keras/flask/flask.env
     ports:
-      - 5000:5000
+      - 5000:80
     depends_on:
       - redis-server
       - mongodb
       - celery
   celery:
-    build: ./python_keras/backend
-    env_file: ./python_keras/backend/backend.env
+    build: ./python_keras/celery
+    env_file: ./python_keras/celery/celery.env
     ports:
       - 5555:5555
     depends_on:

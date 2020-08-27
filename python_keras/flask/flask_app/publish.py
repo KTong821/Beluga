@@ -1,40 +1,38 @@
 import sys  # noqa
 import os  # noqa
 sys.path.insert(1, os.path.abspath("../"))  # noqa
-from backend.tasks import test  # noqa
+from tasks.tasks import test  # noqa
 
-from flask import Flask, request, jsonify
+from flask import request
+from flask_app import app
 from pymongo import MongoClient
 from bson.objectid import ObjectId
-from bson.json_util import dumps
 from pprint import pprint 
 from datetime import datetime
+from .printd import debug
 import json
 
-app = Flask(__name__)
 
 if (os.environ.get("ON_LOCAL")):
     uri = "mongodb://localhost:27017/"
 else:
     uri = "mongodb://mongodb:27017/"
 
-print("MongoDB URI:", uri)
-client = MongoClient(uri)
+try:
+    client = MongoClient(host=[uri], connectTimeoutMS=2000)
+    client.server_info()
+except:
+    print(f"CONNECTION ERROR COULD NOT CONNECT TO MONGODB @ {uri}")
+    client.close()
+else:
+    print(f"CONNECTION TO {uri} SUCCESSFUL")
+
 db = client["beluga-dev"]
 models = db["models"]
 layers = db["layers"]
 
-def debug(text):
-    if (isinstance(text, dict)):
-        text = dumps(text)
-    print('\x1b[1;32;40m' + text + '\x1b[0m')
-
-@app.route("/healthcheck", methods=["GET"])
-def healthcheck():
-    return "OK"
-
 @app.route('/', methods=["POST"]) #ADD TRY CATCH FOR ERRORS
-def home(): 
+def publish(): 
     body = request.get_json()
     debug(body)
     model = models.find_one({"_id": ObjectId(body["_id"])})
@@ -52,7 +50,3 @@ def home():
     model["layers"] = temp
     test.delay(model)
     return body["_id"]
-
-
-if (__name__ == "__main__"):
-    app.run(host="0.0.0.0")
