@@ -3,8 +3,7 @@ import os  # noqa
 sys.path.insert(1, os.path.abspath("../"))  # noqa
 from tasks import script  # noqa
 
-from flask import request
-from flask_app import app
+from flask import request, Blueprint
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from pprint import pprint
@@ -12,6 +11,7 @@ from datetime import datetime
 from .printd import debug
 import json
 
+publisher = Blueprint("publisher", __name__)
 
 if (os.environ.get("ON_LOCAL")):
     uri = "mongodb://localhost:27017/"
@@ -32,7 +32,7 @@ models = db["models"]
 layers = db["layers"]
 
 
-@app.route('/', methods=["POST"])
+@publisher.route('/', methods=["POST"])
 def publish():
     body = request.get_json()
     if body is None:
@@ -61,9 +61,9 @@ def publish():
         temp = layers.find_one({"_id": layer})
         if temp is None:
             return f"Invalid layer ID {str(layer)}; not found.", 400
-        del temp["_id"], temp["owner"]
+        del temp["_id"], temp["owner"], temp["__v"]
         layer_dicts.append(temp)
 
     model["layers"] = layer_dicts
-    script.delay(model)
+    script.delay(model, filetype)
     return body["_id"]

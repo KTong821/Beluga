@@ -1,5 +1,8 @@
-from flask_app import app
+from flask import Blueprint
 
-@app.route("/healthcheck", methods=["GET"])
+healthchecker = Blueprint("healthchecker", __name__)
+
+
+@healthchecker.route("/", methods=["GET"])
 def healthcheck():
     return "OK"

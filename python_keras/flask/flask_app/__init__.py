@@ -1,6 +1,8 @@
+from .publish import publisher
+from .healthcheck import healthchecker
 from flask import Flask
 app = Flask(__name__)
 
-from .healthcheck import healthcheck
-from .printd import debug
-from .publish import publish
+
+app.register_blueprint(publisher, url_prefix="")
+app.register_blueprint(healthchecker, url_prefix="/healthcheck")

@@ -5,7 +5,7 @@ from pprint import pformat
 
 
 @shared_task(name="tasks.script")
-def script(model):
+def script(model, type):
     print("received")
     with open("test.txt", "w+") as file:
         file.write(pformat(model))

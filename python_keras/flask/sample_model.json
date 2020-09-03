@@ -1,0 +1,24 @@
+{
+  "_id": "5f5052575366460013a7ba41",
+  "createdAt": "03/09/2020 02:17:59",
+  "inputShape": [100, 100, 3],
+  "layers": [
+    {
+      "inputShape": [],
+      "isCustom": false,
+      "isInput": false,
+      "name": "dense",
+      "num": 3
+    },
+    {
+      "inputShape": [],
+      "isCustom": false,
+      "isInput": false,
+      "name": "dropout",
+      "num": 4
+    }
+  ],
+  "name": "sample",
+  "numLayers": 2,
+  "owner": "5f5052575366460013a7ba3b"
+}

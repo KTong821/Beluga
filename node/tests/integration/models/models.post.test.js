@@ -106,7 +106,7 @@ describe("/api/models", () => {
         const layer1 = await Layer.create({
           name: "dropout",
           owner: mongoose.Types.ObjectId(),
-          num: 4,
+          num: 5,
           isInput: false,
           isCustom: false,
         });
