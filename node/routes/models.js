@@ -62,10 +62,10 @@ router.post("/", auth, async (req, res) => {
 router.post("/:id", auth, async (req, res) => {
   if (!req.body.type && typeof req.body.type !== "string")
     return res.status(400).send("Model return type required as string.");
-  if (!["docker", "h5", "script"].includes(req.body.type))
+  if (!["docker", "h5", "script", "notebook"].includes(req.body.type))
     return res
       .status(400)
-      .send("Only 'docker', 'h5', or 'script' return types allowed.");
+      .send("Only 'docker', 'h5', 'script', 'notebook' return types allowed.");
   const user = await User.findById(req.user._id);
   if (!user.models.some((id) => id.equals(req.params.id)))
     return res
@@ -80,10 +80,10 @@ router.post("/:id", auth, async (req, res) => {
       .send("The user does not own the model with the given ID.");
 
   const flask_res = await model.publish(req.body.type);
-
   if (flask_res.status == 200) return res.send(flask_res.data);
-  else if (flask_res.status == 500) return res.status(500).end();
-  else return res.status(400).send("__ERROR MESSAGE__"); //Add logic after integrating python
+  else if (flask_res.status == 500) {
+    return res.status(500).end();
+  } else return res.status(400).send("__ERROR MESSAGE__"); //Add logic after integrating python
 });
 
 router.put("/:id", auth, async (req, res) => {

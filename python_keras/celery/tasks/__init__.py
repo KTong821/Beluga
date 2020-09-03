@@ -1,5 +1,6 @@
 from celery import Celery
 from pprint import pprint
+from .script import script
 import os
 
 if(os.environ.get("ON_LOCAL")):

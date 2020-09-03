@@ -1,15 +1,11 @@
-from tasks import celery
+from celery import shared_task
+from .util.append import *
+from .util.ipynb import *
+from pprint import pformat
 
 
-def something():
-    with open("./test.py", "w") as file:
-        file.write("import tensorflow as tf\n")
-        file.write("import numpy as np\n")
-        file.write("import seaborn as sn\n")
-
-
-@celery.task(name="backend.tasks.test")
+@shared_task(name="tasks.script")
 def script(model):
-    # pprint(model)
-    something()
-# shutil.copyfile()
+    print("received")
+    with open("test.txt", "w+") as file:
+        file.write(pformat(model))

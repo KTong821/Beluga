@@ -103,25 +103,28 @@ describe("/api/models", () => {
           isInput: false,
           isCustom: false,
         });
+        const layer1 = await Layer.create({
+          name: "dropout",
+          owner: mongoose.Types.ObjectId(),
+          num: 4,
+          isInput: false,
+          isCustom: false,
+        });
         const { _id } = await Model.create({
           ...model,
-          layers: [layer],
+          layers: [layer, layer1],
           owner: user._id,
         });
+
         user.models.push(_id);
         await user.save();
         let res;
 
-        for (let type of ["docker", "h5", "script"]) {
+        for (let type of ["docker", "h5", "script", "notebook"]) {
           res = await post_id({ type }, _id);
           expect(res.status).toBe(200);
           expect(res.text).toBe(_id.toString());
         }
-
-        // setTimeout(() => {
-        //   console.log("Timeout Over");
-        //   done(); Pass done as parameter
-        // }, 4000);
       });
       it("should return 400 response if type missing", async () => {
         const res = await post_id(null, mongoose.Types.ObjectId());
