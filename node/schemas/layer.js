@@ -1,14 +1,13 @@
 const Joi = require("joi");
 const mongoose = require("mongoose");
 const defaults = [
+  "input",
   "dense",
   "dropout",
   "flatten",
   "maxp2d",
   "gmp2d",
   "conv2d",
-  "l1reg",
-  "l2reg",
   "vgg16",
   "vgg19",
   "resnet50",
@@ -115,6 +114,15 @@ const layerSchema = new mongoose.Schema({
           message: "{PATH} must be of length 2.",
         },
       },
+      regularizer: {
+        type: new mongoose.Schema({
+          l1: Boolean,
+          l2: Boolean,
+          l1_rate: Number,
+          l2_rate: Number,
+        }),
+      },
+      include_top: Boolean,
     }),
   },
 });
@@ -169,6 +177,13 @@ function validateLayer(layer) {
       padding: Joi.string().valid("valid", "same"),
       strides: Joi.array().length(2),
       pooling: Joi.array().length(2),
+      regularizer: Joi.object({
+        l1: Joi.boolean(),
+        l2: Joi.boolean(),
+        l1_rate: Joi.number().positive(),
+        l2_rate: Joi.number().positive(),
+      }),
+      include_top: Joi.boolean(),
     }),
   });
   return schema.validate(layer);
