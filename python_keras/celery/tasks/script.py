@@ -3,7 +3,7 @@ from .util.append import *
 from .util.ipynb import *
 from pprint import pformat
 from .templates.layers import *
-from .template.models import *
+from .templates.models import *
 
 
 def layer(name, dest, details):
