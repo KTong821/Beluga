@@ -1,10 +1,8 @@
 const express = require("express");
-const Joi = require("joi");
 const router = express.Router();
-const mongoose = require("mongoose");
 const { User } = require("../schemas/user");
 const bcrypt = require("bcrypt");
-
+const validate = require("../schemas/auth");
 router.post("/", async (req, res) => {
   //valid login information
   const { error } = validate(req.body);
@@ -19,18 +17,12 @@ router.post("/", async (req, res) => {
   if (!validPassword) return res.status(400).send("Invalid email or password");
 
   //checking if they confirmed their email
-  // if (!user.confirmedEmail) return res.status(403).send("Please confirm your email address");
+  if (!user.confirmedEmail)
+    return res.status(403).send("Please confirm your email address");
 
+  //return generated JWT
   const token = user.generateAuthToken();
   res.header("x-auth-token", token).send("Logged in");
 });
-
-function validate(req) {
-  const schema = Joi.object({
-    email: Joi.string().required().email(),
-    password: Joi.string().required(),
-  });
-  return schema.validate(req);
-}
 
 module.exports = router;

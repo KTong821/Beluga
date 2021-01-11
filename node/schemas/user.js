@@ -35,6 +35,7 @@ const userSchema = new mongoose.Schema({
   confirmedEmail: { type: Boolean, default: false },
 });
 
+//generate JWT authentication
 userSchema.methods.generateAuthToken = function () {
   const token = jwt.sign(
     { _id: this._id, isAdmin: this.isAdmin },
@@ -55,6 +56,7 @@ const complexityOptions = {
   symbol: 0,
 };
 
+//Joi schema validation
 function validate(user) {
   const schema = Joi.object({
     name: Joi.string().min(3).max(50).required(),

@@ -7,43 +7,17 @@ const auth = require("../middleware/auth");
 const winston = require("winston");
 const validateObjId = require("../middleware/validateObjectId");
 const mongoose = require("mongoose");
-const multer = require("multer");
 const _ = require("lodash");
 const fs = require("fs-extra");
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const dir = `./uploads/${req.user._id}`;
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir);
-    cb(null, dir);
-    req.file_path = `${dir}/${file.originalname}`;
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.originalname);
-  },
-});
-const filter = function (req, file, cb) {
-  if (req.body.layer) {
-    //multi-part form data sends only strings, so JSON stringify used to preserve types
-    req.body = JSON.parse(req.body.layer);
-  }
-
-  if (req.body.isCustom) {
-    if (file.originalname.slice(-3) !== ".py") {
-      req.file_invalid = true;
-      cb(null, false);
-    } else cb(null, true);
-  } else {
-    req.file_unexpected = true;
-    cb(null, false);
-  }
-};
-const upload = multer({ storage: storage, fileFilter: filter });
-
+//send list of supported layer types
 router.get("/", async (req, res) => {
   res.send(defaults);
 });
 
+//layers with id attached are custom (lambda function in python) layers
+//written by the user themselves
+//function checks id parameter validity
 function validateParam(req, res, next) {
   if (
     !mongoose.Types.ObjectId.isValid(req.params.id) &&
