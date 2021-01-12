@@ -1,6 +1,8 @@
 import random
 import string
 
+# simple random jwt private key generator
+
 
 def jwtPrivateKey(len):
     letters = string.ascii_letters + string.digits

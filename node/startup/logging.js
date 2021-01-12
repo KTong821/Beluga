@@ -1,6 +1,8 @@
 const winston = require("winston");
 require("winston-mongodb");
 require("express-async-errors");
+
+//winston logging -> file, console, NO MONGODB
 module.exports = function () {
   winston.add(
     new winston.transports.File({
