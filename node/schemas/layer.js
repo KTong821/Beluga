@@ -1,5 +1,7 @@
 const Joi = require("joi");
 const mongoose = require("mongoose");
+
+//supported layer types
 const defaults = [
   "input",
   "dense",
@@ -13,6 +15,11 @@ const defaults = [
   "resnet50",
   "effnetb0",
 ];
+
+//supported activation types
+const activations = ["relu", "sigmoid", "softmax", "tanh", "selu", "elu"];
+
+//mongoDB layer definition
 const layerSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -129,6 +136,7 @@ const layerSchema = new mongoose.Schema({
 
 const Layer = mongoose.model("Layer", layerSchema);
 
+//JOI validation for requests
 function validateLayer(layer) {
   const schema = Joi.object({
     name: Joi.required().when("isCustom", {
@@ -165,14 +173,7 @@ function validateLayer(layer) {
       }),
     }),
     options: Joi.object({
-      activation: Joi.string().valid(
-        "relu",
-        "sigmoid",
-        "softmax",
-        "tanh",
-        "selu",
-        "elu"
-      ),
+      activation: Joi.string().valid(...activations),
       rate: Joi.number().greater(0).less(1),
       padding: Joi.string().valid("valid", "same"),
       strides: Joi.array().length(2),

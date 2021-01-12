@@ -1,15 +1,8 @@
 const Joi = require("joi");
 const mongoose = require("mongoose");
-const axios = require("axios");
-const axr = require("axios-retry");
-const { resolveHostname } = require("nodemailer/lib/shared");
+const publisher = require("./util/axios");
 
-axr(axios, {
-  retries: 2,
-  retryDelay: axr.exponentialDelay,
-  shouldResetTimeout: true,
-});
-
+//mongoDB model definition
 const modelSchema = new mongoose.Schema(
   {
     name: {
@@ -59,28 +52,12 @@ const modelSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-modelSchema.methods.publish = async function (type) {
-  let addr;
-  if (process.env.NODE_ENV === "debug") addr = "http://localhost:5000";
-  else addr = "http://flask:80/";
-
-  try {
-    const res = await axios.post(
-      addr,
-      {
-        type: type,
-        _id: this._id,
-      },
-      { timeout: 1000 }
-    );
-    return res;
-  } catch (err) {
-    console.log(err.response);
-  }
-};
+//modelSchema publish sends request to Flask API
+modelSchema.methods.publish = publisher;
 
 const Model = mongoose.model("Model", modelSchema);
 
+//JOI validation for requests
 function validateModel(model) {
   const schema = Joi.object({
     name: Joi.string().alphanum().trim().min(5).max(25).required(),

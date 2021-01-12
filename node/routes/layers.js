@@ -9,15 +9,14 @@ const validateObjId = require("../middleware/validateObjectId");
 const mongoose = require("mongoose");
 const _ = require("lodash");
 const fs = require("fs-extra");
+const upload = require("./multer_config");
 
 //send list of supported layer types
 router.get("/", async (req, res) => {
   res.send(defaults);
 });
 
-//layers with id attached are custom (lambda function in python) layers
-//written by the user themselves
-//function checks id parameter validity
+//id parameter must either be valid MongoDB _id field or "custom"
 function validateParam(req, res, next) {
   if (
     !mongoose.Types.ObjectId.isValid(req.params.id) &&
@@ -27,7 +26,9 @@ function validateParam(req, res, next) {
   next();
 }
 
+//retrieve configured layer previously created by user
 router.get("/:id", auth, validateParam, async (req, res) => {
+  //return list of layers only if "custom" type specified
   if (req.params.id === "custom") {
     const user = await User.findById(req.user._id);
     let layers = await Layer.find({
@@ -37,6 +38,8 @@ router.get("/:id", auth, validateParam, async (req, res) => {
 
     return res.send(layers);
   }
+
+  //match ownership
   const user = await User.findById(req.user._id);
   if (!user.layers.some((id) => id.equals(req.params.id)))
     return res
@@ -52,7 +55,9 @@ router.get("/:id", auth, validateParam, async (req, res) => {
   res.send(layer);
 });
 
+//create layer
 router.post("/", auth, upload.single("module"), async (req, res) => {
+  //check for file submission
   if (req.file_invalid)
     return res.status(400).send("Invalid file type for custom layer.");
   if (req.file_unexpected)
@@ -61,6 +66,7 @@ router.post("/", auth, upload.single("module"), async (req, res) => {
   const { error } = validate(req.body);
   if (error) {
     if (req.file)
+      //delete submission if layer body has issues
       await fs.unlink(`./uploads/${req.user._id}/${req.file.originalname}`);
     return res.status(400).send(error.details[0].message);
   }
@@ -79,6 +85,8 @@ router.post("/", auth, upload.single("module"), async (req, res) => {
     lambda: req.file_path,
     options: req.body.options,
   };
+
+  //transaction prevents orphan layers
   const transaction = new Transaction();
   try {
     const layer_id = transaction.insert("Layer", layer);
@@ -91,9 +99,11 @@ router.post("/", auth, upload.single("module"), async (req, res) => {
     transaction.clean();
     return res.status(500).send("Internal Server Error");
   }
+  //return created layer, except for lambda file path
   res.send(_.omit(layer, ["lambda"]));
 });
 
+//delete layer by id
 router.delete("/:id", auth, validateObjId, async (req, res) => {
   const user = await User.findById(req.user._id);
   if (!user.layers.some((id) => id.equals(req.params.id)))
