@@ -1,4 +1,4 @@
 Flask==1.1.2
 pymongo==3.10.1
-celery==4.4.6
+celery==5.2.2
 redis==3.5.3
